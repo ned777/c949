@@ -227,6 +227,8 @@
   .rtitle .hint,.rtitle .linkbtn{text-transform:none;letter-spacing:0;font-size:11.5px;margin-left:auto}
   .count{font-size:30px;font-weight:700;color:var(--accent);text-shadow:0 0 12px rgba(25,240,216,.6);line-height:1.15}
   .rdate{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:11.5px}
+  .cdates{margin-top:6px;color:var(--text)}
+  .rdate select{background:#000;border:1px solid var(--line);color:var(--accent);font:inherit;font-size:12px;padding:3px 5px;flex:1;min-width:0;color-scheme:dark}
   .rdate input{background:#000;border:1px solid var(--line);color:var(--accent);font:inherit;font-size:12px;padding:3px 5px;color-scheme:dark;flex:1;min-width:0}
   .ready{display:flex;justify-content:space-between;font-size:13px;color:var(--text);margin-top:4px}
   .ready b{color:var(--accent);font-variant-numeric:tabular-nums}
@@ -270,7 +272,15 @@
     <div class="rtitle">Exam countdown</div>
     <div class="count" id="cdBig">--</div>
     <div class="hint" id="cdSub"></div>
+    <div class="hint cdates" id="cdDates"></div>
     <label class="hint rdate">Exam date <input type="date" id="examDate"></label>
+    <label class="hint rdate">Time zone <select id="tzSel">
+      <option value="America/Los_Angeles">Pacific</option>
+      <option value="America/Denver">Mountain</option>
+      <option value="America/Chicago">Central</option>
+      <option value="America/New_York">Eastern</option>
+      <option value="auto">This device</option>
+    </select></label>
   </div>
 
   <div class="rbox">
@@ -5310,6 +5320,17 @@ const REFS = [
 <li>By value = copy · by reference = original</li></ul>`]
 ];
 const DEFAULT_EXAM = "2026-11-18";
+const DEFAULT_TZ = "America/Los_Angeles";
+// today's date as "YYYY-MM-DD" in the chosen time zone (not whatever zone the browser reports)
+function todayISO(){
+  const tz = store.tz || DEFAULT_TZ;
+  const opt = { year: "numeric", month: "2-digit", day: "2-digit" };
+  if (tz !== "auto") opt.timeZone = tz;
+  try { return new Intl.DateTimeFormat("en-CA", opt).format(new Date()); }
+  catch (e) { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}-${String(n.getDate()).padStart(2, "0")}`; }
+}
+const isoToUTC = s => { const [y, m, d] = s.split("-").map(Number); return Date.UTC(y, m - 1, d); };
+const prettyDate = s => new Date(isoToUTC(s)).toLocaleDateString("en-US", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric" });
 let padTimer = null;
 
 function buildRails(){
@@ -5317,6 +5338,8 @@ function buildRails(){
   $("ref-bigo").open = true;
   $("examDate").value = store.examDate || DEFAULT_EXAM;
   $("examDate").onchange = () => { store.examDate = $("examDate").value; save(); tickRails(); };
+  $("tzSel").value = store.tz || DEFAULT_TZ;
+  $("tzSel").onchange = () => { store.tz = $("tzSel").value; save(); tickRails(); refreshRails(); };
   $("pad").value = store.pad || "";
   $("pad").oninput = () => { clearTimeout(padTimer); padTimer = setTimeout(() => { store.pad = $("pad").value; save(); }, 400); };
   $("padClear").onclick = () => { $("pad").value = ""; store.pad = ""; save(); };
@@ -5344,14 +5367,13 @@ function calc(){
   $("cB").style.visibility = op === "log" ? "hidden" : "visible";
 }
 function tickRails(){
-  const v = store.examDate || DEFAULT_EXAM;
-  const [y, m, d] = v.split("-").map(Number);
-  const now = new Date(), today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const days = Math.round((new Date(y, m - 1, d) - today) / 86400000);
+  const v = store.examDate || DEFAULT_EXAM, t = todayISO();
+  const days = Math.round((isoToUTC(v) - isoToUTC(t)) / 86400000);
+  $("cdDates").textContent = `Today: ${prettyDate(t)} · Exam: ${prettyDate(v)}`;
   $("cdBig").textContent = days > 1 ? `${days} days` : days === 1 ? "Tomorrow" : days === 0 ? "Today" : "Done";
   $("cdSub").textContent = days > 1 ? "Aim for 90%+ on three practice exams." : days === 1 ? "Run your misses tonight. Sleep beats cramming." : days === 0 ? "Cheat sheet once, flagged questions, then stop. You've got this." : "Set a new date if you're retaking.";
 }
-const dayKey = () => { const n = new Date(); return `${n.getFullYear()}-${n.getMonth() + 1}-${n.getDate()}`; };
+const dayKey = () => todayISO();
 function refreshRails(){
   const pct = list => list.length ? Math.round(100 * list.filter(mastered).length / list.length) : 0;
   const pdf = Q.filter(q => q.src === "pdf"), p1 = pct(pdf), p2 = pct(Q);
