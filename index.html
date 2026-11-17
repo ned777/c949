@@ -4784,16 +4784,39 @@ const NOTES = [
 <li><b>AND:</b> true only if both are true (<code>&amp;&amp;</code>). <b>OR:</b> true if at least one is (<code>||</code>). <b>NOT:</b> flips it (<code>!</code>). Python spells them <code>and</code>, <code>or</code>, <code>not</code>.</li>
 </ul>`},
 {id:"oop", p:"p3", t:"Classes and objects", h:`
+<p><b>Class = blueprint. Object = the real thing built from it.</b> One onboarding template (the class), many actual new hires (the objects).</p>
+<pre>class Employee:
+    company = "CHOC"               # class attribute: ONE copy, shared by all
+
+    def __init__(self, name):      # constructor; name is a parameter
+        self.name = name           # instance attribute: each object gets its own
+
+    def greet(self, greeting):     # method; greeting is a parameter
+        msg = greeting + ", " + self.name   # local variable
+        return msg
+
+ned = Employee("Ned")              # __init__ runs automatically here
+amy = Employee("Amy")</pre>
 <ul>
-<li><b>Class:</b> a template for objects. <b>Object:</b> data plus the operations on it.</li>
-<li><b>Attributes:</b> the data. <b>Methods:</b> functions defined inside a class.</li>
-<li><b>Constructor:</b> runs automatically when an object is created. In Python it's <code>__init__</code>. Names with double underscores on both sides are special methods.</li>
-<li><code>self</code> is the object the method was called on.</li>
-<li><b>Class attribute:</b> shared by all instances.</li>
-<li><b>Inheritance:</b> a child class gets the parent's attributes and methods.</li>
-<li><b>Encapsulation:</b> hide the internals (Python: names starting with <code>_</code> or <code>__</code>).</li>
-<li><b>Polymorphism:</b> different classes answer the same method name in their own way (method overriding).</li>
-</ul>`},
+<li><b>Attributes</b> = the data. <b>Methods</b> = functions defined inside a class.</li>
+<li><b>Constructor</b> = <code>__init__</code>. It runs <b>by itself</b> the moment an object is created and fills in the starting data. The double underscores mark a special method Python calls for you.</li>
+<li><code>self</code> = "this particular object." When building Ned, <code>self</code> is Ned.</li>
+</ul>
+<p><b>The four kinds of variables (an exam favorite):</b></p>
+<div class="tw"><table>
+<tr><th>Kind</th><th>How to spot it</th><th>Office picture</th><th>Shared?</th></tr>
+<tr><td><b>Class attribute</b></td><td>Under <code>class</code>, outside any method, no <code>self.</code></td><td>Company name on the building</td><td><b>Yes, one copy for ALL objects</b></td></tr>
+<tr><td><b>Instance attribute</b></td><td>Starts with <code>self.</code></td><td>Each person's name badge</td><td>No, one per object</td></tr>
+<tr><td><b>Parameter</b></td><td>In the <code>( )</code> of a <code>def</code></td><td>Sticky note handed over for one task</td><td>No, lasts one call</td></tr>
+<tr><td><b>Local variable</b></td><td>Made inside a method, no <code>self.</code></td><td>Scratch paper for one task</td><td>No, lasts one call</td></tr>
+</table></div>
+<p><b>The three big ideas of OOP:</b></p>
+<ul>
+<li><b>Inheritance:</b> a child class gets the parent's attributes and methods for free. <code>class Dog(Animal):</code> means a Dog <i>is an</i> Animal. A new hire inherits the company handbook without rewriting it.</li>
+<li><b>Encapsulation:</b> hide the internals and only allow access through methods. An ATM lets you deposit and check your balance, but you can't reach into the vault. Python marks "private" with a leading underscore: <code>_balance</code> or <code>__balance</code>.</li>
+<li><b>Polymorphism:</b> same method name, different behavior per class (method overriding). Call <code>speak()</code> on any animal: a Dog barks, a Cat meows. One remote "power" button works on every TV brand.</li>
+</ul>
+<p><b>Destructor</b> (cleanup when an object is destroyed): <code>__del__</code> in Python, <code>~ClassName()</code> in C++. Rarely needed in Python because garbage collection handles memory.</p>`},
 {id:"pytypes", p:"p3", t:"Python basics: names, types, strings, tuples", h:`
 <ul>
 <li>A variable is created by <b>assignment</b>. A <b>name</b> uses letters, digits, underscores, and can't start with a digit.</li>
